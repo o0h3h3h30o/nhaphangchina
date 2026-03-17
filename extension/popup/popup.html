@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NhapHangChina</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">📦 NhapHangChina</div>
+      <div id="userInfo" class="user-info" style="display:none">
+        <span id="userName"></span>
+        <button id="btnLogout" class="btn-icon" title="Đăng xuất">✕</button>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <div id="loginSection" class="section">
+      <h3>Đăng nhập</h3>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="email@example.com">
+      </div>
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" id="password" placeholder="••••••">
+      </div>
+      <button id="btnLogin" class="btn btn-primary btn-block">Đăng nhập</button>
+      <div id="loginError" class="error" style="display:none"></div>
+    </div>
+
+    <!-- Tabs -->
+    <div id="mainSection" style="display:none">
+      <div class="tabs">
+        <button class="tab active" data-tab="product">Sản phẩm</button>
+        <button class="tab" data-tab="orders">Đơn hàng</button>
+      </div>
+
+      <!-- Product Tab -->
+      <div id="tabProduct" class="tab-content active">
+        <div id="noProduct" class="empty-state">
+          <p>Mở trang sản phẩm trên <strong>1688.com</strong> hoặc <strong>Taobao.com</strong> để bắt đầu</p>
+        </div>
+
+        <div id="productInfo" style="display:none">
+          <div class="product-card">
+            <img id="productImage" src="" alt="" class="product-img">
+            <div class="product-details">
+              <div id="productTitle" class="product-title"></div>
+              <div class="product-price">
+                <span id="productSource" class="badge"></span>
+                <span id="productPrice" class="price"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SKU Selectors -->
+          <div id="skuSection" style="display:none"></div>
+
+          <div class="form-group">
+            <label>Số lượng</label>
+            <input type="number" id="quantity" value="1" min="1">
+          </div>
+          <div class="form-group">
+            <label>Mã vận đơn TQ (nếu có)</label>
+            <input type="text" id="trackingCode" placeholder="Để trống nếu chưa có">
+          </div>
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <textarea id="note" rows="2" placeholder="Màu, size, yêu cầu đặc biệt..."></textarea>
+          </div>
+
+          <button id="btnOrder" class="btn btn-primary btn-block">🛒 Đặt hàng</button>
+          <div id="orderSuccess" class="success" style="display:none"></div>
+          <div id="orderError" class="error" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div id="tabOrders" class="tab-content">
+        <div id="ordersList" class="orders-list">
+          <div class="loading">Đang tải...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settingsBar" class="settings-bar" style="display:none">
+      <label>API Server:</label>
+      <input type="text" id="apiUrl" class="input-sm" value="http://localhost:8080">
+      <button id="btnSaveSettings" class="btn btn-sm">Lưu</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
