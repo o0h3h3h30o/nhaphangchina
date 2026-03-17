@@ -48,7 +48,7 @@ class InstallController extends Controller
             return redirect()->to('/');
         }
 
-        $hostname = $this->request->getPost('hostname') ?: 'localhost';
+        $hostname = $this->request->getPost('hostname') ?: '127.0.0.1';
         $username = $this->request->getPost('username') ?: 'root';
         $password = $this->request->getPost('password') ?: '';
         $database = $this->request->getPost('database') ?: 'vanchuyenhongphat';

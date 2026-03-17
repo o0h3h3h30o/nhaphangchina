@@ -24,7 +24,7 @@
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">MySQL Host</label>
-                <input type="text" name="hostname" class="form-control" value="localhost" required>
+                <input type="text" name="hostname" class="form-control" value="127.0.0.1" required>
             </div>
 
             <div class="row">
