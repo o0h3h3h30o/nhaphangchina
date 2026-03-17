@@ -56,9 +56,29 @@ class InstallController extends Controller
 
         // Test connection
         try {
-            $mysqli = new \mysqli($hostname, $username, $password, '', (int)$port);
-            if ($mysqli->connect_error) {
-                return redirect()->to('/install/database')->with('error', 'Không thể kết nối MySQL: ' . $mysqli->connect_error);
+            // Try TCP first (127.0.0.1), then socket (localhost)
+            $connected = false;
+            $lastError = '';
+            $hosts = [$hostname];
+            if ($hostname === '127.0.0.1') $hosts[] = 'localhost';
+            if ($hostname === 'localhost') array_unshift($hosts, '127.0.0.1');
+
+            foreach ($hosts as $tryHost) {
+                try {
+                    $mysqli = @new \mysqli($tryHost, $username, $password, '', (int)$port);
+                    if (!$mysqli->connect_error) {
+                        $connected = true;
+                        $hostname = $tryHost; // remember working host
+                        break;
+                    }
+                    $lastError = $mysqli->connect_error;
+                } catch (\Exception $e) {
+                    $lastError = $e->getMessage();
+                }
+            }
+
+            if (!$connected) {
+                return redirect()->to('/install/database')->with('error', 'Không thể kết nối MySQL: ' . $lastError);
             }
 
             // Create database if not exists
