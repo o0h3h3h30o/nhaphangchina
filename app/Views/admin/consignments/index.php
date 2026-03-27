@@ -109,6 +109,7 @@
                     <option value="fee_calculated" <?= ($status ?? '') === 'fee_calculated' ? 'selected' : '' ?>>Da tinh phi</option>
                     <option value="completed" <?= ($status ?? '') === 'completed' ? 'selected' : '' ?>>Hoan thanh</option>
                     <option value="cancelled" <?= ($status ?? '') === 'cancelled' ? 'selected' : '' ?>>Da huy</option>
+                    <option value="orphan" <?= ($status ?? '') === 'orphan' ? 'selected' : '' ?>>Vo danh</option>
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
@@ -181,7 +182,7 @@
                                     ?>
                                     <span class="badge <?= $sBadge ?>"><?= $sLabel ?></span>
                                 </td>
-                                <td><?= $c['actual_weight'] ? number_format($c['actual_weight'], 2) : '<span class="text-muted">-</span>' ?></td>
+                                <td><?= $c['actual_weight'] ? number_format($c['actual_weight'], 2, ',', '.') : '<span class="text-muted">-</span>' ?></td>
                                 <td>
                                     <?php if (!empty($c['wooden_crating'])): ?>
                                         <span class="badge bg-warning text-dark"><i class="fas fa-box me-1"></i>Co</span>
