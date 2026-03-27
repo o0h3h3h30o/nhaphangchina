@@ -42,13 +42,19 @@ class ConsignmentController extends BaseController
         // Search
         $search = $this->request->getGet('search');
         if ($search) {
-            $builder->groupStart()
-                ->like('order_code', $search)
-                ->orLike('cn_tracking_code', $search)
-                ->orLike('product_name', $search)
-                ->orLike('vn_receiver_name', $search)
-                ->orLike('vn_receiver_phone', $search)
-                ->groupEnd();
+            // Support HP-id search
+            if (preg_match('/^HP-?(\d+)$/i', $search, $m)) {
+                $builder->where('consignment_orders.user_id', (int)$m[1]);
+            } else {
+                $builder->groupStart()
+                    ->like('order_code', $search)
+                    ->orLike('cn_tracking_code', $search)
+                    ->orLike('product_name', $search)
+                    ->orLike('vn_receiver_name', $search)
+                    ->orLike('vn_receiver_phone', $search)
+                    ->orLike('users.username', $search)
+                    ->groupEnd();
+            }
         }
 
         // Filter by status
