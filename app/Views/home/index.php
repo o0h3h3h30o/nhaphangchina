@@ -495,13 +495,18 @@
             <div class="row align-items-center">
                 <div class="col-lg-3 col-6">
                     <a href="/" style="text-decoration:none;">
-                        <div class="d-flex align-items-center gap-2">
-                            <div style="background:var(--primary-red);color:#fff;font-weight:900;font-size:1.6rem;padding:6px 14px;border-radius:6px;">VCHP</div>
-                            <div>
-                                <div style="font-weight:800;font-size:1.1rem;color:var(--primary-red);line-height:1.2;">VANCHUYENHONGPHAT</div>
-                                <div style="font-size:0.65rem;color:#999;letter-spacing:1px;">EXPRESS SHIPPING</div>
+                        <?php $logo = get_setting('site_logo'); ?>
+                        <?php if (!empty($logo)): ?>
+                            <img src="<?= esc($logo) ?>" alt="<?= esc(get_setting('site_name', 'VCHP')) ?>" class="logo-img">
+                        <?php else: ?>
+                            <div class="d-flex align-items-center gap-2">
+                                <div style="background:var(--primary-red);color:#fff;font-weight:900;font-size:1.6rem;padding:6px 14px;border-radius:6px;">VCHP</div>
+                                <div>
+                                    <div style="font-weight:800;font-size:1.1rem;color:var(--primary-red);line-height:1.2;">VANCHUYENHONGPHAT</div>
+                                    <div style="font-size:0.65rem;color:#999;letter-spacing:1px;">EXPRESS SHIPPING</div>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </a>
                 </div>
                 <div class="col-lg-6 d-none d-lg-block">

@@ -6,7 +6,7 @@
     <h3 class="mb-0"><i class="fas fa-cog me-2"></i>Cài đặt website</h3>
 </div>
 
-<form method="post" action="/admin/settings">
+<form method="post" action="/admin/settings" enctype="multipart/form-data">
     <?= csrf_field() ?>
 
     <?php
@@ -59,7 +59,15 @@
                                 <label for="setting-<?= esc($setting['setting_key']) ?>" class="form-label fw-semibold">
                                     <?= esc($setting['setting_label']) ?>
                                 </label>
-                                <?php if (in_array($setting['setting_key'], ['google_map_embed', 'footer_text'])): ?>
+                                <?php if ($setting['setting_key'] === 'site_logo'): ?>
+                                    <?php if (!empty($setting['setting_value'])): ?>
+                                        <div class="mb-2">
+                                            <img src="<?= esc($setting['setting_value']) ?>" alt="Logo" style="max-height:80px; background:#f8f9fa; padding:8px; border-radius:6px; border:1px solid #dee2e6;">
+                                        </div>
+                                    <?php endif; ?>
+                                    <input type="file" class="form-control" id="setting-site_logo" name="site_logo" accept="image/*">
+                                    <div class="form-text">PNG/JPG/SVG, khuyến nghị nền trong suốt, cao tối đa 60px</div>
+                                <?php elseif (in_array($setting['setting_key'], ['google_map_embed', 'footer_text'])): ?>
                                     <textarea class="form-control"
                                               id="setting-<?= esc($setting['setting_key']) ?>"
                                               name="settings[<?= esc($setting['setting_key']) ?>]"

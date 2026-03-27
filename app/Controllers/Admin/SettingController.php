@@ -55,8 +55,35 @@ class SettingController extends BaseController
             return $redirect;
         }
 
-        $settings = $this->request->getPost('settings');
+        // Handle logo upload
+        $logo = $this->request->getFile('site_logo');
+        if ($logo && $logo->isValid() && !$logo->hasMoved()) {
+            $uploadPath = FCPATH . 'uploads/';
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
 
+            // Delete old logo
+            $oldLogo = $this->db->table('site_settings')
+                ->where('setting_key', 'site_logo')
+                ->get()->getRowArray();
+            if ($oldLogo && !empty($oldLogo['setting_value'])) {
+                $oldFile = FCPATH . ltrim($oldLogo['setting_value'], '/');
+                if (is_file($oldFile)) {
+                    unlink($oldFile);
+                }
+            }
+
+            $newName = 'logo_' . time() . '.' . $logo->getClientExtension();
+            $logo->move($uploadPath, $newName);
+
+            $this->db->table('site_settings')
+                ->where('setting_key', 'site_logo')
+                ->update(['setting_value' => '/uploads/' . $newName]);
+        }
+
+        // Handle text settings
+        $settings = $this->request->getPost('settings');
         if (is_array($settings)) {
             foreach ($settings as $key => $value) {
                 $this->db->table('site_settings')

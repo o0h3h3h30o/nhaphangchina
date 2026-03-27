@@ -863,6 +863,7 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `site_settings` (`setting_key`, `setting_value`, `setting_label`, `setting_group`, `sort_order`) VALUES
+('site_logo', '', 'Logo website', 'general', 0),
 ('site_name', 'Vận Chuyển Hồng Phát', 'Tên website', 'general', 1),
 ('site_slogan', 'Dịch vụ vận chuyển Trung - Việt uy tín', 'Slogan', 'general', 2),
 ('footer_text', '© 2024 Vận Chuyển Hồng Phát. All rights reserved.', 'Nội dung footer', 'general', 3),

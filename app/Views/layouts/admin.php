@@ -337,7 +337,13 @@
             <button class="btn btn-link text-white d-lg-none me-2 sidebar-toggle" type="button">
                 <i class="fas fa-bars fa-lg"></i>
             </button>
-            <a class="navbar-brand" href="/admin">VanChuyenHongPhat <span>Admin</span></a>
+            <a class="navbar-brand d-flex align-items-center" href="/admin">
+                <?php $logo = get_setting('site_logo'); ?>
+                <?php if (!empty($logo)): ?>
+                    <img src="<?= esc($logo) ?>" alt="Admin" style="max-height:36px; margin-right:8px;">
+                <?php endif; ?>
+                <?= esc(get_setting('site_name', 'VanChuyenHongPhat')) ?> <span>Admin</span>
+            </a>
 
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
                 <i class="fas fa-ellipsis-v text-white"></i>
