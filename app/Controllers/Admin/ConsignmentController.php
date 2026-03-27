@@ -60,7 +60,7 @@ class ConsignmentController extends BaseController
         // Filter by status
         $status = $this->request->getGet('status');
         if ($status) {
-            $builder->where('status', $status);
+            $builder->where('consignment_orders.status', $status);
         }
 
         // Filter by cargo_type
