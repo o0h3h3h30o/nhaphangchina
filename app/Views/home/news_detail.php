@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary-red: #1d5d36; --primary-red-dark: #144a2a; --dark-bg: #2c2c2c; }
+        :root { --primary-red: #d32f2f; --primary-red-dark: #b71c1c; --dark-bg: #2c2c2c; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
         .top-bar { background: var(--dark-bg); padding: 10px 0; }
         .top-bar a { color: #fff; text-decoration: none; font-weight: 600; font-size: 0.9rem; }

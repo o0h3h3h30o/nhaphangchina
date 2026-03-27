@@ -17,8 +17,8 @@
         .step-dot.active { background: #fff; }
         .step-dot.done { background: #4caf50; }
         .install-body { padding: 30px; }
-        .btn-install { background: linear-gradient(135deg, #1d5d36, #144a2a); border: none; color: #fff; padding: 12px 40px; border-radius: 8px; font-weight: 600; font-size: 1.05rem; }
-        .btn-install:hover { background: linear-gradient(135deg, #144a2a, #0f3820); color: #fff; transform: translateY(-1px); }
+        .btn-install { background: linear-gradient(135deg, #e94560, #c62828); border: none; color: #fff; padding: 12px 40px; border-radius: 8px; font-weight: 600; font-size: 1.05rem; }
+        .btn-install:hover { background: linear-gradient(135deg, #c62828, #b71c1c); color: #fff; transform: translateY(-1px); }
         .check-item { display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
         .check-item:last-child { border-bottom: none; }
         .check-icon { width: 28px; text-align: center; }

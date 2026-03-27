@@ -8,8 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-red: #1d5d36;
-            --primary-red-dark: #144a2a;
+            --primary-red: #d32f2f;
+            --primary-red-dark: #b71c1c;
             --dark-bg: #2c2c2c;
             --gray-bg: #f0f0f0;
         }

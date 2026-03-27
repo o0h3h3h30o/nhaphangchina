@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary-red: #1d5d36; --primary-red-dark: #144a2a; --dark-bg: #2c2c2c; }
+        :root { --primary-red: #d32f2f; --primary-red-dark: #b71c1c; --dark-bg: #2c2c2c; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
         .top-bar { background: var(--dark-bg); padding: 10px 0; }
         .top-bar a { color: #fff; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
@@ -48,9 +48,9 @@
     <div class="container py-5">
         <!-- Category filter -->
         <div class="mb-4">
-            <a href="/tin-tuc" class="btn btn-sm <?= empty($currentCategory) ? 'btn-success' : 'btn-outline-secondary' ?> me-1">Tất cả</a>
+            <a href="/tin-tuc" class="btn btn-sm <?= empty($currentCategory) ? 'btn-danger' : 'btn-outline-secondary' ?> me-1">Tất cả</a>
             <?php foreach ($categories as $cat): ?>
-                <a href="/tin-tuc?category=<?= esc($cat['slug']) ?>" class="btn btn-sm <?= $currentCategory === $cat['slug'] ? 'btn-success' : 'btn-outline-secondary' ?> me-1"><?= esc($cat['name']) ?></a>
+                <a href="/tin-tuc?category=<?= esc($cat['slug']) ?>" class="btn btn-sm <?= $currentCategory === $cat['slug'] ? 'btn-danger' : 'btn-outline-secondary' ?> me-1"><?= esc($cat['name']) ?></a>
             <?php endforeach; ?>
         </div>
 
@@ -67,7 +67,7 @@
                             <?php if (!empty($item['image'])): ?>
                                 <img src="/<?= esc($item['image']) ?>" class="card-img-top" alt="<?= esc($item['title']) ?>" style="height:200px;object-fit:cover;">
                             <?php else: ?>
-                                <div style="height:200px;background:linear-gradient(135deg,#1d5d36,#2e8b57);display:flex;align-items:center;justify-content:center;">
+                                <div style="height:200px;background:linear-gradient(135deg,#d32f2f,#ff6659);display:flex;align-items:center;justify-content:center;">
                                     <i class="fas fa-newspaper fa-4x text-white" style="opacity:0.3;"></i>
                                 </div>
                             <?php endif; ?>
