@@ -8,9 +8,9 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-purple: #2d1b69;
-            --primary-purple-light: #3d2b7a;
-            --accent-color: #7c3aed;
+            --primary-purple: #0f2e1a;
+            --primary-purple-light: #1a4a2c;
+            --accent-color: #1d5d36;
             --sidebar-width: 260px;
         }
 
