@@ -143,7 +143,7 @@
                             <tr>
                                 <td><strong><?= esc($c['order_code']) ?></strong></td>
                                 <td><code><?= esc($c['cn_tracking_code'] ?? '-') ?></code></td>
-                                <td><span class="badge bg-info">HP-<?= esc($c['user_id'] ?? '?') ?></span></td>
+                                <td><span class="badge bg-info">HP<?= esc($c['user_id'] ?? '?') ?></span></td>
                                 <td><?= esc($c['username'] ?? '-') ?></td>
                                 <td><?= esc(mb_strimwidth($c['product_description'] ?? $c['product_name'] ?? '-', 0, 30, '...')) ?></td>
                                 <td>

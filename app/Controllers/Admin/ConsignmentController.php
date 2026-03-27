@@ -43,7 +43,7 @@ class ConsignmentController extends BaseController
         $search = $this->request->getGet('search');
         if ($search) {
             // Support HP-id search
-            if (preg_match('/^HP-?(\d+)$/i', $search, $m)) {
+            if (preg_match('/^HP(\d+)$/i', $search, $m)) {
                 $builder->where('consignment_orders.user_id', (int)$m[1]);
             } else {
                 $builder->groupStart()
