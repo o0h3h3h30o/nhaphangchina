@@ -2,9 +2,9 @@
 
 namespace App\Controllers\Admin;
 
-use CodeIgniter\Controller;
+use App\Controllers\BaseController;
 
-class CnWarehouseController extends Controller
+class CnWarehouseController extends BaseController
 {
     protected $db;
 

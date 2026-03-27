@@ -2,9 +2,9 @@
 
 namespace App\Controllers\Admin;
 
-use CodeIgniter\Controller;
+use App\Controllers\BaseController;
 
-class VnReceivingController extends Controller
+class VnReceivingController extends BaseController
 {
     protected $db;
 
