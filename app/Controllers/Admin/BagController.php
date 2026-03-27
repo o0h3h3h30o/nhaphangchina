@@ -141,7 +141,7 @@ class BagController extends BaseController
             ->set('total_weight', 'total_weight + ' . $chargeableWeight, false)
             ->update();
 
-        // Nếu match đơn ký gửi → cập nhật trạng thái
+        // Cập nhật hoặc tạo đơn ký gửi
         if ($matchedOrder) {
             $this->db->table('consignment_orders')
                 ->where('id', $matchedOrder['id'])
@@ -172,6 +172,25 @@ class BagController extends BaseController
                 'event_at'             => $now,
                 'created_at'           => $now,
             ]);
+        } else {
+            // Chưa có đơn → tạo mới
+            $orderCode = 'KG' . date('Ymd') . rand(1000, 9999);
+            $this->db->table('consignment_orders')->insert([
+                'order_code'       => $orderCode,
+                'user_id'          => $userId,
+                'cn_tracking_code' => $trackingCode,
+                'cargo_type'       => 'general',
+                'status'           => 'received_cn',
+                'actual_weight'    => $chargeableWeight,
+                'cn_parcel_id'     => $parcelId,
+                'created_at'       => $now,
+                'updated_at'       => $now,
+            ]);
+            $newOrderId = $this->db->insertID();
+
+            $this->db->table('cn_warehouse_parcels')
+                ->where('id', $parcelId)
+                ->update(['consignment_order_id' => $newOrderId]);
         }
 
         return ['created' => true, 'tracking' => $trackingCode];

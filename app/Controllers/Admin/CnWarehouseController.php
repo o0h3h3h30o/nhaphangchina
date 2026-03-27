@@ -156,9 +156,10 @@ class CnWarehouseController extends BaseController
         $this->db->table('cn_warehouse_parcels')->insert($parcelData);
         $parcelId = $this->db->insertID();
 
-        // Nếu match đơn ký gửi → cập nhật trạng thái
+        // Cập nhật hoặc tạo đơn ký gửi
         $matchInfo = null;
         if ($matchedOrder) {
+            // Đã có đơn → cập nhật
             $this->db->table('consignment_orders')
                 ->where('id', $matchedOrder['id'])
                 ->update([
@@ -193,6 +194,32 @@ class CnWarehouseController extends BaseController
                 'order_code'    => $matchedOrder['order_code'],
                 'product_name'  => $matchedOrder['product_name'],
                 'user_id'       => $matchedOrder['user_id'],
+            ];
+        } else {
+            // Chưa có đơn → tạo mới (vô danh hoặc có user)
+            $orderCode = 'KG' . date('Ymd') . rand(1000, 9999);
+            $this->db->table('consignment_orders')->insert([
+                'order_code'       => $orderCode,
+                'user_id'          => $userId,
+                'cn_tracking_code' => $trackingCode,
+                'cargo_type'       => 'general',
+                'status'           => 'received_cn',
+                'actual_weight'    => $weight,
+                'cn_parcel_id'     => $parcelId,
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s'),
+            ]);
+            $newOrderId = $this->db->insertID();
+
+            // Liên kết kiện với đơn
+            $this->db->table('cn_warehouse_parcels')
+                ->where('id', $parcelId)
+                ->update(['consignment_order_id' => $newOrderId]);
+
+            $matchInfo = [
+                'order_code'    => $orderCode,
+                'product_name'  => null,
+                'user_id'       => $userId,
             ];
         }
 
