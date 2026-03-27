@@ -197,19 +197,46 @@ class VnReceivingController extends BaseController
             ->where('id', $parcelId)
             ->update(['user_id' => $userId]);
 
-        // Auto-match đơn ký gửi nếu có
-        $matchedOrder = $this->db->table('consignment_orders')
-            ->where('cn_tracking_code', $parcel['cn_tracking_code'])
-            ->where('user_id', $userId)
-            ->get()->getRowArray();
+        // Auto-match hoặc tạo đơn ký gửi
+        $matchedOrder = null;
+        if (!empty($parcel['cn_tracking_code'])) {
+            $matchedOrder = $this->db->table('consignment_orders')
+                ->where('cn_tracking_code', $parcel['cn_tracking_code'])
+                ->get()->getRowArray();
+        }
 
         $matchInfo = null;
         if ($matchedOrder) {
+            // Đơn đã tồn tại → cập nhật user_id nếu chưa có
+            if (empty($matchedOrder['user_id']) || $matchedOrder['user_id'] == 0) {
+                $this->db->table('consignment_orders')
+                    ->where('id', $matchedOrder['id'])
+                    ->update(['user_id' => $userId]);
+            }
             $this->db->table('cn_warehouse_parcels')
                 ->where('id', $parcelId)
                 ->update(['consignment_order_id' => $matchedOrder['id']]);
 
             $matchInfo = $matchedOrder['order_code'];
+        } else {
+            // Chưa có đơn → tạo mới
+            $orderCode = 'KG' . date('Ymd') . rand(1000, 9999);
+            $this->db->table('consignment_orders')->insert([
+                'order_code'       => $orderCode,
+                'user_id'          => $userId,
+                'cn_tracking_code' => $parcel['cn_tracking_code'] ?? '',
+                'status'           => 'received_vn',
+                'actual_weight'    => $parcel['weight'] ?? 0,
+                'created_at'       => date('Y-m-d H:i:s'),
+                'updated_at'       => date('Y-m-d H:i:s'),
+            ]);
+            $newOrderId = $this->db->insertID();
+
+            $this->db->table('cn_warehouse_parcels')
+                ->where('id', $parcelId)
+                ->update(['consignment_order_id' => $newOrderId]);
+
+            $matchInfo = $orderCode;
         }
 
         return $this->response->setJSON([
