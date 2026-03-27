@@ -66,9 +66,6 @@ class ConsignmentController extends BaseController
                 ->groupEnd();
         } elseif ($status) {
             $builder->where('consignment_orders.status', $status);
-            // Khi lọc trạng thái cụ thể, bỏ đơn vô danh
-            $builder->where('consignment_orders.user_id IS NOT NULL')
-                ->where('consignment_orders.user_id !=', 0);
         }
 
         // Filter by cargo_type
