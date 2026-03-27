@@ -847,3 +847,32 @@ INSERT INTO `posts` (`title`, `slug`, `excerpt`, `content`, `section`, `icon`, `
 ('Chính sách thanh toán', 'chinh-sach-thanh-toan', 'Quy định về thanh toán', '<p>Chi tiết chính sách thanh toán.</p>', 'chinh-sach', 'fas fa-credit-card', 1, 2),
 ('Quy định đóng gói', 'quy-dinh-dong-goi', 'Yêu cầu đóng gói hàng hóa', '<p>Chi tiết quy định đóng gói.</p>', 'quy-dinh', 'fas fa-box', 1, 1),
 ('Hướng dẫn gửi hàng', 'huong-dan-gui-hang', 'Các bước gửi hàng từ Trung Quốc về Việt Nam', '<p>Hướng dẫn chi tiết quy trình gửi hàng.</p>', 'huong-dan', 'fas fa-book', 1, 1);
+
+--
+-- Table structure for table `site_settings`
+--
+
+CREATE TABLE IF NOT EXISTS `site_settings` (
+  `setting_key` varchar(100) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `setting_label` varchar(255) DEFAULT NULL,
+  `setting_group` varchar(50) DEFAULT 'general',
+  `sort_order` int(11) DEFAULT 0,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`setting_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `site_settings` (`setting_key`, `setting_value`, `setting_label`, `setting_group`, `sort_order`) VALUES
+('site_name', 'Vận Chuyển Hồng Phát', 'Tên website', 'general', 1),
+('site_slogan', 'Dịch vụ vận chuyển Trung - Việt uy tín', 'Slogan', 'general', 2),
+('footer_text', '© 2024 Vận Chuyển Hồng Phát. All rights reserved.', 'Nội dung footer', 'general', 3),
+('exchange_rate_cny_vnd', '3500', 'Tỷ giá CNY/VND', 'general', 5),
+('hotline', '0343269115', 'Hotline chính', 'contact', 1),
+('hotline_cskh', '0812882222', 'Hotline CSKH', 'contact', 2),
+('hotline_khieunai', '0812882222', 'Hotline Khiếu nại', 'contact', 3),
+('hotline_kho', '0812882222', 'Hotline Kho', 'contact', 4),
+('email', 'info@vanchuyenhongphat.com', 'Email', 'contact', 5),
+('address', 'Hà Nội, Việt Nam', 'Địa chỉ', 'contact', 6),
+('google_map_embed', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3725.2!2d105.76!3d20.98!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDU4JzQ4LjAiTiAxMDXCsDQ1JzM2LjAiRQ!5e0!3m2!1svi!2svn!4v1', 'Google Map Embed URL', 'contact', 7),
+('facebook_url', '', 'Facebook URL', 'social', 1),
+('zalo_url', '', 'Zalo URL', 'social', 2);

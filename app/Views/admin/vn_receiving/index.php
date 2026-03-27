@@ -3,6 +3,14 @@
 <?= $this->section('content') ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0"><i class="fas fa-warehouse me-2"></i>Kho Viet Nam - Nhan bao</h4>
+    <a href="<?= site_url('admin/vn-receiving/orphans') ?>" class="btn btn-warning">
+        <i class="fas fa-question-circle me-1"></i> Kien vo danh
+        <?php
+        $orphanCount = \Config\Database::connect()->table('cn_warehouse_parcels')->where('user_id IS NULL')->countAllResults();
+        if ($orphanCount > 0): ?>
+            <span class="badge bg-danger"><?= $orphanCount ?></span>
+        <?php endif; ?>
+    </a>
 </div>
 
 <!-- Quet kien (check nhanh) -->

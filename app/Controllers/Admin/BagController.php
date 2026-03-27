@@ -39,30 +39,454 @@ class BagController extends Controller
     }
 
     /**
-     * Tạo bao mới
+     * Tạo bao mới - hiển thị form (2 tabs: Excel + Manual)
      */
     public function create()
     {
-        if ($this->request->getMethod() === 'POST') {
+        return view('admin/bags/create', ['title' => 'Tao bao moi']);
+    }
+
+    /**
+     * Helper: Tạo mã bao unique
+     */
+    private function generateBagCode()
+    {
+        $bagCode = 'BAO-' . date('Ymd') . '-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        while ($this->db->table('cn_bags')->where('bag_code', $bagCode)->countAllResults() > 0) {
             $bagCode = 'BAO-' . date('Ymd') . '-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+        }
+        return $bagCode;
+    }
 
-            // Đảm bảo unique
-            while ($this->db->table('cn_bags')->where('bag_code', $bagCode)->countAllResults() > 0) {
-                $bagCode = 'BAO-' . date('Ymd') . '-' . str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+    /**
+     * Helper: Xử lý 1 dòng dữ liệu (tracking, weight, date, qty) → thêm vào bao
+     * Return: ['created' => bool, 'tracking' => string]
+     */
+    private function processRow($bagId, $trackingCode, $weight, $date, $qty)
+    {
+        $staffId = session()->get('user_id');
+        $now     = date('Y-m-d H:i:s');
+        $receivedAt = $date ? $date . ' ' . date('H:i:s') : $now;
+
+        // Check parcel đã tồn tại chưa
+        $parcel = $this->db->table('cn_warehouse_parcels')
+            ->where('cn_tracking_code', $trackingCode)
+            ->get()->getRowArray();
+
+        if ($parcel) {
+            // Đã tồn tại → nếu chưa thuộc bao nào thì gán vào bao
+            if (!$parcel['bag_id'] && $parcel['status'] === 'received') {
+                $this->db->table('cn_warehouse_parcels')
+                    ->where('id', $parcel['id'])
+                    ->update([
+                        'bag_id' => $bagId,
+                        'status' => 'packed',
+                        'weight' => $weight > 0 ? $weight : $parcel['weight'],
+                        'chargeable_weight' => $weight > 0 ? $weight : $parcel['chargeable_weight'],
+                    ]);
+
+                $this->db->table('cn_bags')
+                    ->where('id', $bagId)
+                    ->set('total_parcels', 'total_parcels + 1', false)
+                    ->set('total_weight', 'total_weight + ' . ($weight > 0 ? $weight : (float)$parcel['chargeable_weight']), false)
+                    ->update();
             }
-
-            $this->db->table('cn_bags')->insert([
-                'bag_code'  => $bagCode,
-                'packed_by' => session()->get('user_id'),
-                'note'      => trim($this->request->getPost('note') ?? ''),
-                'status'    => 'packing',
-            ]);
-
-            $bagId = $this->db->insertID();
-            return redirect()->to("/admin/bags/{$bagId}")->with('success', "Da tao bao {$bagCode}");
+            return ['created' => false, 'tracking' => $trackingCode];
         }
 
-        return view('admin/bags/create', ['title' => 'Tao bao moi']);
+        // Chưa tồn tại → auto-match với đơn ký gửi
+        $matchedOrder = $this->db->table('consignment_orders')
+            ->where('cn_tracking_code', $trackingCode)
+            ->whereIn('status', ['draft', 'submitted'])
+            ->get()->getRowArray();
+
+        $consignmentOrderId = null;
+        $userId = null;
+        if ($matchedOrder) {
+            $consignmentOrderId = $matchedOrder['id'];
+            $userId = $matchedOrder['user_id'];
+        }
+
+        $chargeableWeight = $weight > 0 ? $weight : 0;
+
+        // Insert kiện hàng mới
+        $this->db->table('cn_warehouse_parcels')->insert([
+            'cn_tracking_code'     => $trackingCode,
+            'consignment_order_id' => $consignmentOrderId,
+            'weight'               => $chargeableWeight,
+            'chargeable_weight'    => $chargeableWeight,
+            'cargo_type'           => $matchedOrder['cargo_type'] ?? 'general',
+            'bag_id'               => $bagId,
+            'user_id'              => $userId,
+            'received_by'          => $staffId,
+            'status'               => 'packed',
+            'received_at'          => $receivedAt,
+        ]);
+        $parcelId = $this->db->insertID();
+
+        // Cập nhật tổng bao
+        $this->db->table('cn_bags')
+            ->where('id', $bagId)
+            ->set('total_parcels', 'total_parcels + 1', false)
+            ->set('total_weight', 'total_weight + ' . $chargeableWeight, false)
+            ->update();
+
+        // Nếu match đơn ký gửi → cập nhật trạng thái
+        if ($matchedOrder) {
+            $this->db->table('consignment_orders')
+                ->where('id', $matchedOrder['id'])
+                ->update([
+                    'actual_weight' => $chargeableWeight,
+                    'status'        => 'received_cn',
+                    'cn_parcel_id'  => $parcelId,
+                    'updated_at'    => $now,
+                ]);
+
+            $this->db->table('consignment_status_histories')->insert([
+                'consignment_order_id' => $matchedOrder['id'],
+                'from_status'          => $matchedOrder['status'],
+                'to_status'            => 'received_cn',
+                'changed_by'           => $staffId,
+                'note'                 => 'Nhap kho TQ - import bao',
+                'created_at'           => $now,
+            ]);
+
+            $this->db->table('tracking_events')->insert([
+                'consignment_order_id' => $matchedOrder['id'],
+                'event_type'           => 'status_change',
+                'title'                => 'Da nhap kho Trung Quoc',
+                'description'          => "Can: {$chargeableWeight}kg",
+                'location'             => 'Kho Trung Quoc',
+                'handler'              => session()->get('user_name'),
+                'created_by'           => $staffId,
+                'event_at'             => $now,
+                'created_at'           => $now,
+            ]);
+        }
+
+        return ['created' => true, 'tracking' => $trackingCode];
+    }
+
+    /**
+     * AJAX: Parse Excel → trả JSON để preview trên form
+     */
+    public function parseExcel()
+    {
+        $file = $this->request->getFile('excel_file');
+        if (!$file || !$file->isValid()) {
+            return $this->response->setJSON(['error' => 'Vui long chon file Excel.']);
+        }
+
+        $ext = strtolower($file->getExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv'])) {
+            return $this->response->setJSON(['error' => 'Chi ho tro file .xlsx, .xls, .csv']);
+        }
+
+        $tmpPath = $file->getTempName();
+        $rows = ($ext === 'csv') ? $this->parseCsv($tmpPath) : $this->parseXlsx($tmpPath);
+
+        if (empty($rows)) {
+            return $this->response->setJSON(['error' => 'File khong co du lieu.']);
+        }
+
+        // Check từng tracking code đã tồn tại chưa
+        foreach ($rows as &$row) {
+            $existing = $this->db->table('cn_warehouse_parcels')
+                ->where('cn_tracking_code', $row['tracking'])
+                ->get()->getRowArray();
+            $row['exists'] = !empty($existing);
+        }
+
+        return $this->response->setJSON(['rows' => $rows]);
+    }
+
+    /**
+     * AJAX: Import từ Excel
+     */
+    public function importExcel()
+    {
+        $file = $this->request->getFile('excel_file');
+        if (!$file || !$file->isValid()) {
+            return $this->response->setJSON(['error' => 'Vui long chon file Excel.']);
+        }
+
+        $ext = strtolower($file->getExtension());
+        if (!in_array($ext, ['xlsx', 'xls', 'csv'])) {
+            return $this->response->setJSON(['error' => 'Chi ho tro file .xlsx, .xls, .csv']);
+        }
+
+        // Di chuyển file tạm
+        $tmpPath = $file->getTempName();
+
+        // Đọc file Excel bằng PHP (không cần thư viện ngoài cho xlsx đơn giản)
+        $rows = [];
+        if ($ext === 'csv') {
+            $rows = $this->parseCsv($tmpPath);
+        } else {
+            $rows = $this->parseXlsx($tmpPath);
+        }
+
+        if (empty($rows)) {
+            return $this->response->setJSON(['error' => 'File khong co du lieu.']);
+        }
+
+        $note = trim($this->request->getPost('note') ?? '');
+
+        // Tạo bao mới
+        $bagCode = $this->generateBagCode();
+        $this->db->table('cn_bags')->insert([
+            'bag_code'  => $bagCode,
+            'packed_by' => session()->get('user_id'),
+            'note'      => $note,
+            'status'    => 'packing',
+        ]);
+        $bagId = $this->db->insertID();
+
+        $this->db->transStart();
+
+        $created  = 0;
+        $existing = 0;
+
+        foreach ($rows as $row) {
+            $date     = $row['date'] ?? date('Y-m-d');
+            $tracking = trim($row['tracking'] ?? '');
+            $qty      = max(1, (int)($row['qty'] ?? 1));
+            $weight   = (float)($row['weight'] ?? 0);
+
+            if (empty($tracking)) continue;
+
+            $result = $this->processRow($bagId, $tracking, $weight, $date, $qty);
+            if ($result['created']) {
+                $created++;
+            } else {
+                $existing++;
+            }
+        }
+
+        $this->db->transComplete();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => "Da tao bao {$bagCode} voi " . ($created + $existing) . " kien hang.",
+            'bag_url' => site_url('admin/bags/' . $bagId),
+            'details' => [
+                'total'    => $created + $existing,
+                'created'  => $created,
+                'existing' => $existing,
+            ],
+        ]);
+    }
+
+    /**
+     * AJAX: Import từng dòng (manual)
+     */
+    public function importManual()
+    {
+        $rows = $this->request->getPost('rows');
+        $note = trim($this->request->getPost('note') ?? '');
+
+        if (empty($rows) || !is_array($rows)) {
+            return $this->response->setJSON(['error' => 'Chua nhap du lieu.']);
+        }
+
+        // Validate
+        foreach ($rows as $i => $row) {
+            if (empty(trim($row['tracking'] ?? ''))) {
+                return $this->response->setJSON(['error' => 'Dong ' . ($i + 1) . ': Ma van don khong duoc de trong.']);
+            }
+            if ((float)($row['weight'] ?? 0) <= 0) {
+                return $this->response->setJSON(['error' => 'Dong ' . ($i + 1) . ': Khoi luong phai lon hon 0.']);
+            }
+        }
+
+        // Tạo bao mới
+        $bagCode = $this->generateBagCode();
+        $this->db->table('cn_bags')->insert([
+            'bag_code'  => $bagCode,
+            'packed_by' => session()->get('user_id'),
+            'note'      => $note,
+            'status'    => 'packing',
+        ]);
+        $bagId = $this->db->insertID();
+
+        $this->db->transStart();
+
+        $created  = 0;
+        $existing = 0;
+
+        foreach ($rows as $row) {
+            $tracking = trim($row['tracking'] ?? '');
+            $weight   = (float)($row['weight'] ?? 0);
+            $date     = $row['date'] ?? date('Y-m-d');
+            $qty      = max(1, (int)($row['qty'] ?? 1));
+
+            if (empty($tracking)) continue;
+
+            $result = $this->processRow($bagId, $tracking, $weight, $date, $qty);
+            if ($result['created']) {
+                $created++;
+            } else {
+                $existing++;
+            }
+        }
+
+        $this->db->transComplete();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => "Da tao bao {$bagCode} voi " . ($created + $existing) . " kien hang.",
+            'bag_url' => site_url('admin/bags/' . $bagId),
+            'details' => [
+                'total'    => $created + $existing,
+                'created'  => $created,
+                'existing' => $existing,
+            ],
+        ]);
+    }
+
+    /**
+     * Parse CSV file
+     */
+    private function parseCsv($path)
+    {
+        $rows = [];
+        if (($handle = fopen($path, 'r')) !== false) {
+            while (($data = fgetcsv($handle)) !== false) {
+                if (count($data) < 2) continue;
+                // Bỏ qua header nếu có
+                if (strtolower(trim($data[0])) === 'ngay' || strtolower(trim($data[0])) === 'date') continue;
+
+                $rows[] = [
+                    'date'     => $this->parseDate($data[0] ?? ''),
+                    'tracking' => trim($data[1] ?? ''),
+                    'qty'      => (int)($data[2] ?? 1),
+                    'weight'   => (float)($data[3] ?? 0),
+                ];
+            }
+            fclose($handle);
+        }
+        return $rows;
+    }
+
+    /**
+     * Parse XLSX file (dùng SimpleXLSX nếu có, fallback ZipArchive)
+     */
+    private function parseXlsx($path)
+    {
+        $rows = [];
+
+        // Dùng ZipArchive để đọc xlsx (built-in PHP)
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return $rows;
+        }
+
+        // Đọc shared strings
+        $sharedStrings = [];
+        $ssXml = $zip->getFromName('xl/sharedStrings.xml');
+        if ($ssXml) {
+            $ssDoc = new \DOMDocument();
+            $ssDoc->loadXML($ssXml);
+            $siElements = $ssDoc->getElementsByTagName('si');
+            foreach ($siElements as $si) {
+                $text = '';
+                $tElements = $si->getElementsByTagName('t');
+                foreach ($tElements as $t) {
+                    $text .= $t->textContent;
+                }
+                $sharedStrings[] = $text;
+            }
+        }
+
+        // Đọc sheet1
+        $sheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+        if (!$sheetXml) {
+            $zip->close();
+            return $rows;
+        }
+
+        $doc = new \DOMDocument();
+        $doc->loadXML($sheetXml);
+        $rowElements = $doc->getElementsByTagName('row');
+
+        foreach ($rowElements as $rowEl) {
+            $cells = $rowEl->getElementsByTagName('c');
+            $rowData = [];
+
+            foreach ($cells as $cell) {
+                $colRef = preg_replace('/[0-9]+/', '', $cell->getAttribute('r'));
+                $colIdx = $this->colToIndex($colRef);
+                $type   = $cell->getAttribute('t');
+                $vNode  = $cell->getElementsByTagName('v');
+
+                $value = '';
+                if ($vNode->length > 0) {
+                    $value = $vNode->item(0)->textContent;
+                    if ($type === 's') {
+                        $value = $sharedStrings[(int)$value] ?? $value;
+                    }
+                }
+
+                $rowData[$colIdx] = $value;
+            }
+
+            if (empty($rowData)) continue;
+
+            // Cột: 0=Ngày, 1=Mã vận đơn, 2=Số kiện, 3=Khối lượng
+            $dateVal  = $rowData[0] ?? '';
+            $tracking = trim($rowData[1] ?? '');
+            $qty      = (int)($rowData[2] ?? 1);
+            $weight   = (float)($rowData[3] ?? 0);
+
+            if (empty($tracking)) continue;
+            // Bỏ header
+            if (strtolower($tracking) === 'ma van don' || strtolower($tracking) === 'tracking') continue;
+
+            $rows[] = [
+                'date'     => $this->parseDate($dateVal),
+                'tracking' => $tracking,
+                'qty'      => max(1, $qty),
+                'weight'   => $weight,
+            ];
+        }
+
+        $zip->close();
+        return $rows;
+    }
+
+    /**
+     * Convert Excel column letter to index (A=0, B=1, ...)
+     */
+    private function colToIndex($col)
+    {
+        $col = strtoupper($col);
+        $idx = 0;
+        for ($i = 0; $i < strlen($col); $i++) {
+            $idx = $idx * 26 + (ord($col[$i]) - ord('A') + 1);
+        }
+        return $idx - 1;
+    }
+
+    /**
+     * Parse date from various formats
+     */
+    private function parseDate($value)
+    {
+        if (empty($value)) return date('Y-m-d');
+
+        // Excel serial date number
+        if (is_numeric($value) && (int)$value > 40000) {
+            $unixDate = ((int)$value - 25569) * 86400;
+            return date('Y-m-d', $unixDate);
+        }
+
+        // Thử parse date string
+        $ts = strtotime($value);
+        if ($ts) {
+            return date('Y-m-d', $ts);
+        }
+
+        return date('Y-m-d');
     }
 
     /**
@@ -90,7 +514,7 @@ class BagController extends Controller
     }
 
     /**
-     * AJAX: Thêm kiện vào bao
+     * AJAX: Thêm kiện vào bao (scan barcode)
      */
     public function addParcel($bagId)
     {

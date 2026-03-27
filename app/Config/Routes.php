@@ -125,7 +125,9 @@ $routes->group('admin', ['filter' => 'admin', 'namespace' => 'App\Controllers\Ad
     // Dong bao
     $routes->get('bags', 'BagController::index');
     $routes->get('bags/create', 'BagController::create');
-    $routes->post('bags/create', 'BagController::create');
+    $routes->post('bags/parse-excel', 'BagController::parseExcel');
+    $routes->post('bags/import-excel', 'BagController::importExcel');
+    $routes->post('bags/import-manual', 'BagController::importManual');
     $routes->get('bags/(:num)', 'BagController::show/$1');
     $routes->post('bags/(:num)/add-parcel', 'BagController::addParcel/$1');
     $routes->post('bags/(:num)/remove-parcel/(:num)', 'BagController::removeParcel/$1/$2');
@@ -137,6 +139,9 @@ $routes->group('admin', ['filter' => 'admin', 'namespace' => 'App\Controllers\Ad
     $routes->post('vn-receiving/(:num)/arrive', 'VnReceivingController::arrive/$1');
     $routes->post('vn-receiving/(:num)/unpack', 'VnReceivingController::unpack/$1');
     $routes->post('vn-receiving/scan', 'VnReceivingController::scanParcel');
+    $routes->get('vn-receiving/orphans', 'VnReceivingController::orphanParcels');
+    $routes->post('vn-receiving/assign-user', 'VnReceivingController::assignUser');
+    $routes->get('vn-receiving/search-users', 'VnReceivingController::searchUsers');
 
     // Consignment management
     $routes->get('consignments', 'ConsignmentController::index');
@@ -214,4 +219,8 @@ $routes->group('admin', ['filter' => 'admin', 'namespace' => 'App\Controllers\Ad
     $routes->get('pickups', 'PickupController::index');
     $routes->post('pickups/(:num)/confirm', 'PickupController::confirm/$1');
     $routes->post('pickups/(:num)/complete', 'PickupController::complete/$1');
+
+    // Site settings
+    $routes->get('settings', 'SettingController::index');
+    $routes->post('settings', 'SettingController::update');
 });

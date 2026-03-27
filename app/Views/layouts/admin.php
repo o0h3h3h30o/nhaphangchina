@@ -453,6 +453,13 @@
                     <i class="fas fa-people-carry"></i> Quan ly lay hang
                 </a>
             </li>
+
+            <li class="sidebar-heading">He thong</li>
+            <li class="nav-item">
+                <a class="nav-link <?= url_is('admin/settings*') ? 'active' : '' ?>" href="/admin/settings">
+                    <i class="fas fa-cog"></i> Cai dat
+                </a>
+            </li>
         </ul>
     </nav>
 

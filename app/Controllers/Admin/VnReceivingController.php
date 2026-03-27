@@ -141,6 +141,110 @@ class VnReceivingController extends Controller
     }
 
     /**
+     * Danh sách kiện vô danh (chưa gán user)
+     */
+    public function orphanParcels()
+    {
+        $search = $this->request->getGet('search') ?? '';
+
+        $query = $this->db->table('cn_warehouse_parcels p')
+            ->select('p.*, b.bag_code')
+            ->join('cn_bags b', 'b.id = p.bag_id', 'left')
+            ->where('p.user_id IS NULL');
+
+        if ($search) {
+            $query->like('p.cn_tracking_code', $search);
+        }
+
+        $parcels = $query->orderBy('p.received_at', 'DESC')->get()->getResultArray();
+
+        $orphanCount = $this->db->table('cn_warehouse_parcels')
+            ->where('user_id IS NULL')
+            ->countAllResults();
+
+        return view('admin/vn_receiving/orphan_parcels', [
+            'title'       => 'Kien hang vo danh',
+            'parcels'     => $parcels,
+            'search'      => $search,
+            'orphanCount' => $orphanCount,
+        ]);
+    }
+
+    /**
+     * AJAX: Gán user cho kiện vô danh
+     */
+    public function assignUser()
+    {
+        $parcelId = (int) $this->request->getPost('parcel_id');
+        $userId   = (int) $this->request->getPost('user_id');
+
+        if (!$parcelId || !$userId) {
+            return $this->response->setJSON(['error' => 'Thieu thong tin.']);
+        }
+
+        $parcel = $this->db->table('cn_warehouse_parcels')->where('id', $parcelId)->get()->getRowArray();
+        if (!$parcel) {
+            return $this->response->setJSON(['error' => 'Kien hang khong ton tai.']);
+        }
+
+        $user = $this->db->table('users')->where('id', $userId)->get()->getRowArray();
+        if (!$user) {
+            return $this->response->setJSON(['error' => 'User khong ton tai.']);
+        }
+
+        // Cập nhật user_id cho kiện
+        $this->db->table('cn_warehouse_parcels')
+            ->where('id', $parcelId)
+            ->update(['user_id' => $userId]);
+
+        // Auto-match đơn ký gửi nếu có
+        $matchedOrder = $this->db->table('consignment_orders')
+            ->where('cn_tracking_code', $parcel['cn_tracking_code'])
+            ->where('user_id', $userId)
+            ->get()->getRowArray();
+
+        $matchInfo = null;
+        if ($matchedOrder) {
+            $this->db->table('cn_warehouse_parcels')
+                ->where('id', $parcelId)
+                ->update(['consignment_order_id' => $matchedOrder['id']]);
+
+            $matchInfo = $matchedOrder['order_code'];
+        }
+
+        return $this->response->setJSON([
+            'success'  => true,
+            'message'  => 'Da gan kien ' . $parcel['cn_tracking_code'] . ' cho ' . $user['username'],
+            'username' => $user['username'],
+            'matched_order' => $matchInfo,
+        ]);
+    }
+
+    /**
+     * AJAX: Tìm user
+     */
+    public function searchUsers()
+    {
+        $q = trim($this->request->getGet('q') ?? '');
+        if (strlen($q) < 1) {
+            return $this->response->setJSON(['users' => []]);
+        }
+
+        $users = $this->db->table('users')
+            ->select('id, username, email, phone')
+            ->groupStart()
+                ->like('username', $q)
+                ->orLike('email', $q)
+                ->orLike('phone', $q)
+            ->groupEnd()
+            ->where('status', 'active')
+            ->limit(10)
+            ->get()->getResultArray();
+
+        return $this->response->setJSON(['users' => $users]);
+    }
+
+    /**
      * AJAX: Quét kiện khi dỡ bao (check từng mã)
      */
     public function scanParcel()

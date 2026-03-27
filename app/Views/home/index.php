@@ -517,7 +517,7 @@
                         </div>
                         <div class="hotline-text">
                             <small>Hỗ trợ trực tuyến</small>
-                            <div class="phone">0343269115</div>
+                            <div class="phone"><?= get_setting('hotline', '0343269115') ?></div>
                         </div>
                     </div>
                 </div>
@@ -857,13 +857,13 @@
                     <h5 class="footer-heading">Liên hệ</h5>
                     <div class="footer-info">
                         <strong>VANCHUYENHONGPHAT</strong><br><br>
-                        <i class="fas fa-phone-alt text-danger me-2"></i>Điện thoại: <strong>0812882222</strong><br><br>
-                        <i class="fas fa-envelope text-danger me-2"></i>Email: <strong>info@vanchuyenhongphat.vn</strong><br><br>
-                        <i class="fas fa-map-marker-alt text-danger me-2"></i>Địa chỉ: LK10-17, khu đô thị Văn Khê, Hà Đông, Hà Nội<br><br>
+                        <i class="fas fa-phone-alt text-danger me-2"></i>Điện thoại: <strong><?= get_setting('hotline_cskh', '0812882222') ?></strong><br><br>
+                        <i class="fas fa-envelope text-danger me-2"></i>Email: <strong><?= get_setting('email', 'info@vanchuyenhongphat.com') ?></strong><br><br>
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>Địa chỉ: <?= get_setting('address', 'Hà Nội, Việt Nam') ?><br><br>
                         <small>
-                            Hotline CSKH: 0812.882.222<br>
-                            Hotline Khiếu nại: 0812.882.222<br>
-                            Hotline Kho: 0812.882.222
+                            Hotline CSKH: <?= get_setting('hotline_cskh', '0812882222') ?><br>
+                            Hotline Khiếu nại: <?= get_setting('hotline_khieunai', '0812882222') ?><br>
+                            Hotline Kho: <?= get_setting('hotline_kho', '0812882222') ?>
                         </small>
                     </div>
                 </div>
@@ -885,7 +885,7 @@
                 <div class="col-lg-4 col-md-6">
                     <h5 class="footer-heading">Bản đồ</h5>
                     <div class="footer-map">
-                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3725.2!2d105.76!3d20.98!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDU4JzQ4LjAiTiAxMDXCsDQ1JzM2LjAiRQ!5e0!3m2!1svi!2svn!4v1" allowfullscreen loading="lazy"></iframe>
+                        <iframe src="<?= get_setting('google_map_embed', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3725.2!2d105.76!3d20.98!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjDCsDU4JzQ4LjAiTiAxMDXCsDQ1JzM2LjAiRQ!5e0!3m2!1svi!2svn!4v1') ?>" allowfullscreen loading="lazy"></iframe>
                     </div>
                 </div>
 
@@ -893,10 +893,10 @@
                 <div class="col-lg-3 col-md-6">
                     <h5 class="footer-heading">Kết nối với chúng tôi</h5>
                     <div class="footer-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="<?= get_setting('facebook_url', '#') ?>"><i class="fab fa-facebook-f"></i></a>
                         <a href="#"><i class="fab fa-youtube"></i></a>
                         <a href="#"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" style="background:#0068ff;"><i class="fas fa-comment-dots"></i></a>
+                        <a href="<?= get_setting('zalo_url', '#') ?>" style="background:#0068ff;"><i class="fas fa-comment-dots"></i></a>
                     </div>
                     <div class="mt-3">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/200px-Google_Play_Store_badge_EN.svg.png" alt="Google Play" style="height:36px;margin-right:8px;border-radius:4px;">
@@ -907,12 +907,12 @@
         </div>
 
         <div class="footer-bottom">
-            Copyright&copy; <?= date('Y') ?> VANCHUYENHONGPHAT - All Rights Reserved
+            <?= get_setting('footer_text', 'Copyright&copy; ' . date('Y') . ' VANCHUYENHONGPHAT - All Rights Reserved') ?>
         </div>
     </footer>
 
     <!-- Zalo floating button -->
-    <a href="#" class="zalo-float" title="Chat Zalo">
+    <a href="<?= get_setting('zalo_url', '#') ?>" class="zalo-float" title="Chat Zalo">
         Zalo
     </a>
 
