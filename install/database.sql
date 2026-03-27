@@ -111,7 +111,7 @@ DROP TABLE IF EXISTS `consignment_orders`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `consignment_orders` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(10) unsigned NOT NULL,
+  `user_id` int(10) unsigned DEFAULT NULL,
   `order_code` varchar(30) NOT NULL,
   `cn_tracking_code` varchar(100) DEFAULT NULL,
   `product_name` varchar(255) DEFAULT NULL,
@@ -155,7 +155,7 @@ CREATE TABLE `consignment_orders` (
   KEY `idx_consignment_code` (`order_code`),
   KEY `idx_consignment_cn_tracking` (`cn_tracking_code`),
   KEY `idx_consignment_truck` (`truck_trip_id`),
-  CONSTRAINT `consignment_orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `consignment_orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `consignment_orders_ibfk_2` FOREIGN KEY (`truck_trip_id`) REFERENCES `truck_trips` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
