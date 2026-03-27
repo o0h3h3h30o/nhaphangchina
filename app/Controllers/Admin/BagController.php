@@ -14,6 +14,16 @@ class BagController extends BaseController
     }
 
     /**
+     * Parse weight: dấu , → dấu .
+     */
+    private function parseWeight($val): float
+    {
+        if (is_numeric($val)) return (float)$val;
+        $val = str_replace(',', '.', (string)$val);
+        return (float)$val;
+    }
+
+    /**
      * Danh sách bao
      */
     public function index()
@@ -251,7 +261,7 @@ class BagController extends BaseController
             $date     = $row['date'] ?? date('Y-m-d');
             $tracking = trim($row['tracking'] ?? '');
             $qty      = max(1, (int)($row['qty'] ?? 1));
-            $weight   = (float)($row['weight'] ?? 0);
+            $weight   = $this->parseWeight($row['weight'] ?? 0);
 
             if (empty($tracking)) continue;
 
@@ -316,7 +326,7 @@ class BagController extends BaseController
 
         foreach ($rows as $row) {
             $tracking = trim($row['tracking'] ?? '');
-            $weight   = (float)($row['weight'] ?? 0);
+            $weight   = $this->parseWeight($row['weight'] ?? 0);
             $date     = $row['date'] ?? date('Y-m-d');
             $qty      = max(1, (int)($row['qty'] ?? 1));
 
@@ -360,7 +370,7 @@ class BagController extends BaseController
                     'date'     => $this->parseDate($data[0] ?? ''),
                     'tracking' => trim($data[1] ?? ''),
                     'qty'      => (int)($data[2] ?? 1),
-                    'weight'   => (float)($data[3] ?? 0),
+                    'weight'   => $this->parseWeight($data[3] ?? 0),
                 ];
             }
             fclose($handle);
@@ -436,7 +446,7 @@ class BagController extends BaseController
             $dateVal  = $rowData[0] ?? '';
             $tracking = trim($rowData[1] ?? '');
             $qty      = (int)($rowData[2] ?? 1);
-            $weight   = (float)($rowData[3] ?? 0);
+            $weight   = $this->parseWeight($rowData[3] ?? 0);
 
             if (empty($tracking)) continue;
             // Bỏ header
